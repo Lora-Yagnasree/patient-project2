@@ -20,12 +20,7 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = [
-            "id", "uhid", "registration_no", "relation", "relation_name",
-            "address", "mobile_no", "occupation", "service",
-            "nationality", "age", "identities", "insurances"
-        ]
-
+        fields = '__all__'
     def create(self, validated_data):
         identities_data = validated_data.pop("identities", [])
         insurances_data = validated_data.pop("insurances", [])
