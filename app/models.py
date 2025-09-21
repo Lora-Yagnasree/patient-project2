@@ -52,11 +52,11 @@ class Patient(models.Model):
     ]
     blood_group = models.CharField(max_length=5, choices=BLOOD_CHOICES)
 
-    # Identity as JSONField for multiple entries
+    identities = models.JSONField(default=list, blank=True)
     # Example: [{"identity_type": "Aadhar No", "identity_number": "123456"}, {...}]
 
     # Insurance
-
+    insurance = models.JSONField(default=list, blank=True)
     # Location
     city = models.CharField(max_length=100)
     STATE_CHOICES = [
@@ -85,36 +85,5 @@ class Patient(models.Model):
 
     def __str__(self):
         return f"{self.uhid} - {self.relation_name}"
-class Identity(models.Model):
-    IDENTITY_TYPE_CHOICES = [
-        ('Aadhar No', 'Aadhar No'),
-        ('PAN', 'PAN'),
-        ('Passport', 'Passport'),
-        ('Driving License', 'Driving License'),
-        ('Voter ID', 'Voter ID'),
-        ('Other', 'Other'),
-    ]
-
-    patient = models.ForeignKey(Patient, related_name="identities", on_delete=models.CASCADE)
-    identity_type = models.CharField(max_length=50, choices=IDENTITY_TYPE_CHOICES)
-    identity_number = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.identity_type}: {self.identity_number}"
 
 
-class Insurance(models.Model):
-    INSURANCE_CHOICES = [
-        ('HDFC ERGO', 'HDFC ERGO'),
-        ('ICICI Lombard', 'ICICI Lombard'),
-        ('Bajaj Allianz', 'Bajaj Allianz'),
-        ('Star Health', 'Star Health'),
-        ('Other', 'Other'),
-    ]
-
-    patient = models.ForeignKey(Patient, related_name="insurances", on_delete=models.CASCADE)
-    insurance_company = models.CharField(max_length=100, choices=INSURANCE_CHOICES)
-    insurance_number = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.insurance_company}: {self.insurance_number}"
