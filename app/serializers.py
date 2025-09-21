@@ -1,30 +1,62 @@
 from rest_framework import serializers
-from .models import Patient
+from .models import Patient, Identity, Insurance
+
+
+class IdentitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Identity
+        fields = ["id", "identity_type", "identity_number"]
+
+
+class InsuranceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Insurance
+        fields = ["id", "insurance_company", "insurance_number"]
+
 
 class PatientSerializer(serializers.ModelSerializer):
+    identities = IdentitySerializer(many=True)
+    insurances = InsuranceSerializer(many=True)
+
     class Meta:
         model = Patient
-        fields = '__all__'
+        fields = [
+            "id", "uhid", "registration_no", "relation", "relation_name",
+            "address", "mobile_no", "occupation", "service",
+            "nationality", "age", "identities", "insurances"
+        ]
 
-    IDENTITY_TYPE_CHOICES = ['Aadhar No','PAN','Passport','Driving License','Voter ID','Other']
-    INSURANCE_CHOICES = ['HDFC ERGO','ICICI Lombard','Bajaj Allianz','Star Health','Other']
+    def create(self, validated_data):
+        identities_data = validated_data.pop("identities", [])
+        insurances_data = validated_data.pop("insurances", [])
+        patient = Patient.objects.create(**validated_data)
 
-    def validate_identities(self, value):
-        if value is None:
-            return []  # default to empty list if nothing sent
-        for entry in value:
-            if 'identity_type' not in entry or 'identity_number' not in entry:
-                raise serializers.ValidationError("Each identity must have type and number.")
-            if entry['identity_type'] not in self.IDENTITY_TYPE_CHOICES:
-                raise serializers.ValidationError(f"Invalid identity_type: {entry['identity_type']}")
-        return value
+        for identity_data in identities_data:
+            Identity.objects.create(patient=patient, **identity_data)
 
-    def validate_insurance(self, value):
-        if value is None:
-            return []  # default to empty list if nothing sent
-        for entry in value:
-            if 'insurance_company' not in entry or 'insurance_number' not in entry:
-                raise serializers.ValidationError("Each insurance must have company and number.")
-            if entry['insurance_company'] not in self.INSURANCE_CHOICES:
-                raise serializers.ValidationError(f"Invalid insurance_company: {entry['insurance_company']}")
-        return value
+        for insurance_data in insurances_data:
+            Insurance.objects.create(patient=patient, **insurance_data)
+
+        return patient
+
+    def update(self, instance, validated_data):
+        identities_data = validated_data.pop("identities", [])
+        insurances_data = validated_data.pop("insurances", [])
+
+        # update patient fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # replace old identities
+        instance.identities.all().delete()
+        for identity_data in identities_data:
+            Identity.objects.create(patient=instance, **identity_data)
+
+        # replace old insurances
+        instance.insurances.all().delete()
+        for insurance_data in insurances_data:
+            Insurance.objects.create(patient=instance, **insurance_data)
+
+        return instance
+
