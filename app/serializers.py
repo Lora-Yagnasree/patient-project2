@@ -15,10 +15,12 @@ class PatientSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(f"Invalid identity_type: {entry['identity_type']}")
         return value
     def validate_insurance(self, value):
-            for entry in value:
-                if 'insurance_company' not in entry or 'insurance_number' not in entry:
-                    raise serializers.ValidationError("Each insurance must have company and number.")
-                if entry['insurance_company'] not in self.INSURANCE_CHOICES:
-                    raise serializers.ValidationError(f"Invalid insurance_company: {entry['insurance_company']}")
-            return value
+        if value is None:
+            return []  # default to empty list if nothing sent
+        for entry in value:
+            if 'insurance_company' not in entry or 'insurance_number' not in entry:
+                raise serializers.ValidationError("Each insurance must have company and number.")
+            if entry['insurance_company'] not in self.INSURANCE_CHOICES:
+                raise serializers.ValidationError(f"Invalid insurance_company: {entry['insurance_company']}")
+        return value
 
