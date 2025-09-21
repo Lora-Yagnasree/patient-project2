@@ -2,7 +2,7 @@ from django.db import models
 
 class Patient(models.Model):
     # Basic Info
-    uhid = models.CharField(max_length=50, unique=True)
+    uhid = models.CharField(max_length=50, unique=True, blank=True, null=True)
     registration_no = models.CharField(max_length=50, unique=True)
 
     # Relation
