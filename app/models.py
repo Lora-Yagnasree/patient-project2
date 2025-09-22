@@ -118,7 +118,14 @@ class Patient(models.Model):
         ('External', 'External'),
     ]
     referred_by = models.CharField(max_length=20, choices=REFERRED_CHOICES)
-
+    REFERRED_BY_CHOICES = [
+        ('Sastri', 'Sastri'),
+        ('Prabha', 'Prabha'),
+        ('John', 'John'),
+        ('Deo', 'Deo'),
+    ]
+    referred_doctor = models.CharField(max_length=100, choices=REFERRED_BY_CHOICES)
+    mobile_no_doctor = models.CharField(max_length=15)
     message_to_mobile = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
